@@ -1,82 +1,104 @@
 
 # Microcontroller-Based Clone Hero Guitar and Drum Controllers
 
-Embedded Systems | Hardware Design | PCB Design | CAD | Microcontroller Programming
+Embedded Systems | Hardware Design | CAD | Microcontroller Programming | I2C Communication
 
 ## Project Overview
 
-This project involved the design and development of custom guitar and drum controllers for _Clone Hero_, a music-based rhythm video game. The objective was to integrate physical inputs with a microcontroller-based system capable of translating user interactions into digital commands recognized by the game. The completed project was showcased at the 2026 Women Can Do tabling event, where it served as an interactive demonstration to engage high school students and encourage their interest in electrical engineering.
+This project involved designing and building custom guitar and drum controllers for _Clone Hero_, a music-based video game. The goal was to create physical controllers that could communicate with a computer through a microcontroller, allowing the game to register button presses, joystick movements, and drum strikes as keyboard inputs.
+
+The project initially began as an independent build and was later expanded through the Microcontrollers course at the University of Vermont. The completed guitar controller was also brought to the 2026 Women Can Do event, where high school students could interact with the project and learn more about electrical engineering.
 
 ## Project Objectives
 
-- Design and assemble functional guitar and drum controllers compatible with _Clone Hero_
-- Interface physical buttons, switches, joysticks, and pressure sensors with a microcontroller
-- Develop firmware to detect and process various user inputs
-- Design a PCB to house electronic components
-- 3D print a housing unit for the guitar controller
-- Test controller functionality and reliability
+- Build functional guitar and drum controllers compatible with _Clone Hero_
+- Interface push buttons, a joystick, and pressure sensors with a microcontroller
+- Program the controllers to translate physical inputs into keyboard commands
+- Design a PCB to organize the electrical components
+- Design and 3D print a housing for the guitar controller
+- Test and troubleshoot the hardware and software
 
 ## Hardware
 
 | Component | Function |
 |---|---|
-| Arduino Pro Micro (ATmega32U4) | Processes inputs and communicates with the computer through native USB HID |
-| LED Push Buttons | Detect guitar fret inputs and provide visual indication |
-| Two-Axis Joystick Module | Detects upward and downward strumming and provides a navigation button |
-| Adafruit MPRLS I2C Pressure Sensors (5) | Measure pressure changes within the balloons to detect drum strikes |
-| TCA9548A I2C Multiplexer | Allows communication with five pressure sensors sharing the same I2C address |
-| Zeroing Push Button | Calibrates all five pressure sensors to their current baseline pressure |
-| Flexible Tubing and Balloons | Transfer mechanical drum strikes into measurable air pressure changes |
-| Wiring and Connectors | Provide electrical connections between components |
-| PLA Guitar Housing | Provides mechanical support for guitar components |
-| Cardboard Drum Housing | Secures individual balloons and allows access to electrical components |
-| Computer | Runs Clone Hero and receives controller inputs |
+| Arduino Pro Micro (ATmega32U4) | Reads inputs and sends keyboard commands to the computer |
+| LED Push Buttons | Five illuminated fret buttons for the guitar controller |
+| Two-Axis Joystick | Detects upward and downward strumming |
+| Adafruit MPRLS I2C Pressure Sensors (5) | Measure pressure changes caused by drum strikes |
+| TCA9548A I2C Multiplexer | Allows five pressure sensors with the same I2C address to communicate with the microcontroller |
+| Zeroing Push Button | Sets the current pressure readings as the baseline for all five sensors |
+| Balloons and Flexible Tubing | Transfer pressure changes from drum strikes to the sensors |
+| Wiring and Connectors | Connect the electronic components |
+| 3D-Printed PLA Housing | Holds the guitar buttons, joystick, and electronics |
+| Cardboard Housing | Holds the five balloons used for the drum controller |
 
 ## System Architecture
 
-1. _Input Detection_: Physical interaction with the user through fret buttons, joystick movement, and pressure-sensitive balloons.
-2. _Signal Processing_: The microcontroller reads digital button states, analog joystick values, and I2C pressure sensor measurements.
-3. _Input Mapping_: Detected actions are mapped to predefined keyboard commands recognized by Clone Hero.
-4. _Communication_: The ATmega32U4 uses native USB Human Interface Device (HID) functionality to transmit keyboard inputs directly to the computer.
-5. _Game Response_: Clone Hero interprets the commands as guitar or drum controller inputs.
+Both controllers followed the same general process:
+
+1. **Input Detection:** The user presses a fret button, moves the joystick, or strikes a balloon.
+2. **Signal Processing:** The microcontroller reads the corresponding digital, analog, or I2C sensor input.
+3. **Input Mapping:** The detected input is assigned to a keyboard command.
+4. **Communication:** The microcontroller sends the command to the computer through USB HID keyboard emulation.
+5. **Game Response:** Clone Hero registers the input as a guitar or drum action.
 
 ## Software Implementation
 
-The embedded firmware is responsible for monitoring live input signals and converting them into meaningful in-game commands. Separate firmware was developed for the guitar and drum controllers.
+Separate Arduino programs were developed for the guitar and drum controllers. Both used the ATmega32U4's native USB HID capabilities to send keyboard commands directly to the computer without requiring additional software.
 
-Primary programming considerations:
-- Selecting a microcontroller with native USB HID keyboard emulation capabilities
-- Input mapping and controller logic
-- Digital button detection and analog joystick thresholding
-- I2C communication and multiplexer channel selection
-- Pressure sensor calibration and threshold-based drum hit detection
-- Debouncing, input state tracking, and timing responsiveness
-- Communication between hardware and software
+The guitar program monitored the five fret buttons and the joystick's analog position. Each button was mapped to a keyboard key, while the joystick used directional thresholds to determine whether the user was strumming up or down.
 
-_Programming Language_: C/C++  
-_Microcontroller_: Arduino Pro Micro with ATmega32U4 chip  
-_Development Environment_: Arduino IDE  
-_Libraries_: Keyboard.h, Wire.h, Adafruit_MPRLS.h
+The drum program was more involved because it required communication with five I2C pressure sensors. The program selected each sensor through the multiplexer, measured its pressure relative to a calibrated baseline, and registered a drum hit when the pressure change exceeded a set threshold. Release thresholds and cooldown timing were also used to prevent a single strike from registering multiple times.
+
+**Programming Language:** C/C++  
+**Microcontroller:** Arduino Pro Micro (ATmega32U4)  
+**Development Environment:** Arduino IDE  
+**Libraries:** Keyboard.h, Wire.h, Adafruit_MPRLS.h
 
 ## Design and Implementation
 
-_Guitar Controller_: The guitar controller utilized five LED-illuminated fret buttons and a joystick serving as the strumming mechanism. Each fret button functioned as a digital input using the microcontroller's internal pull-up resistors, registering a button press and transmitting the corresponding command to the game. The joystick's vertical axis was monitored through an analog input, with upper and lower thresholds used to detect upward and downward strumming. The joystick's integrated push button also provided a navigation input. A large external housing was 3D printed using a hollow guitar model obtained from an online repository. The PLA housing was modified using drilling and assembly techniques to accommodate the buttons, joystick, and electrical components.
+### Guitar Controller
 
-_Drum Controller_: The drum controller consisted of five balloons connected via flexible tubing to individual Adafruit MPRLS I2C pressure sensors. When a balloon was struck, the resulting increase in internal air pressure was detected by its corresponding sensor. Because all five pressure sensors shared the same I2C address, a TCA9548A I2C multiplexer was implemented to allow the microcontroller to communicate with each sensor individually. A zeroing button was implemented to calibrate the pressure sensors by setting their current readings as the baseline when pressed. This established a consistent reference across all five balloons, accounting for differences in their initial internal pressures and improving the consistency of drum hit detection. The microcontroller continuously monitored pressure changes and registered a drum hit when the measured pressure exceeded a predefined threshold of 0.02 PSI above the calibrated baseline. Additional release thresholds and cooldown timing were implemented to prevent repeated or unintended hit detection. This design enabled the conversion of physical drum strikes into digital game inputs. The external housing was constructed using interconnected cardboard boxes, each designed to securely hold an individual balloon in place during operation.
+The guitar controller used five LED-illuminated push buttons as fret buttons and a two-axis joystick as the strumming mechanism. Each fret button was connected to a digital input on the microcontroller, while the joystick's vertical position was read through an analog input. Moving the joystick up or down would register the corresponding strum command in Clone Hero.
+
+The housing was based on a hollow guitar model found in an online repository and 3D printed using PLA. The printed parts were then modified to fit the buttons, joystick, and wiring. The buttons were soldered and installed into the housing, with the microcontroller and remaining electrical connections placed inside.
+
+### Drum Controller
+
+The drum controller used five balloons connected through flexible tubing to individual Adafruit MPRLS pressure sensors. When a balloon was struck, the air pressure inside increased, and the corresponding sensor measured the change.
+
+One challenge was connecting all five sensors to the same microcontroller. Since the sensors had identical I2C addresses, a TCA9548A multiplexer was used to communicate with them individually.
+
+A zeroing button was also added to calibrate the sensors. When pressed, the current pressure reading from each balloon was stored as its baseline. This was important because the balloons did not all have the same starting pressure, and the controller needed to detect pressure changes rather than absolute pressure.
+
+A drum hit was registered when the pressure increased by at least 0.02 PSI above the calibrated baseline. Additional release thresholds and a short cooldown period helped prevent repeated inputs from a single strike.
+
+The housing was made from interconnected cardboard boxes, each holding one balloon securely in place. The tubing ran from the balloons to the sensors, which were connected to the microcontroller through the multiplexer.
 
 ## Testing and Troubleshooting
 
-A primary consideration in the hardware selection process was identifying a cost-effective microcontroller capable of supporting keyboard input emulation. The project initially utilized an Arduino Mega; however, further research identified the ATmega32U4 microcontroller as a more suitable option due to its native USB Human Interface Device (HID) capabilities. Consequently, an Arduino Pro Micro was selected to enable direct keyboard input emulation and key mapping for compatibility with Clone Hero.
+### Microcontroller Selection
 
-Initial keyboard mapping was verified by connecting a single push button to the microcontroller and confirming that a button press generated the corresponding keyboard character. This established proof of concept for USB HID communication before expanding the system to five fret buttons and joystick-based strumming.
+One of the first challenges was finding an affordable microcontroller capable of sending keyboard inputs directly to a computer.
 
-For the drum controller, initial testing was performed using a single pressure sensor and balloon to determine appropriate hit detection parameters. A pressure change threshold of 0.02 PSI was selected to register intentional drum strikes. A release threshold of 0.01 PSI below the trigger level and a 150 ms cooldown were incorporated to reduce repeated triggering. The system was subsequently expanded to five pressure sensors using the TCA9548A multiplexer, with serial monitor outputs used to verify sensor calibration and hit detection.
+The project initially used an Arduino Mega, but it was later discovered that the ATmega32U4 chip supported native USB HID keyboard emulation. This led to switching to an Arduino Pro Micro, which could send keyboard commands directly to Clone Hero without additional software.
 
-Both controllers were successfully tested with Clone Hero, demonstrating functional keyboard mapping and responsive gameplay inputs.
+To test this, a single push button was connected to the Pro Micro and programmed to send a keyboard character when pressed. Once this worked, the design was expanded to include all five fret buttons and the joystick.
+
+### Pressure Sensor Calibration
+
+The drum controller required additional testing to determine how much pressure change should count as a hit.
+
+Testing began with one balloon and pressure sensor. Different pressure thresholds were evaluated to find a value that could reliably detect a strike without triggering from smaller pressure fluctuations.
+
+A threshold of 0.02 PSI was selected, along with a release threshold of 0.01 PSI below the trigger level and a 150 ms cooldown. These parameters helped prevent repeated triggering and made the controller more consistent during gameplay.
+
+Once the single-sensor setup was working, the system was expanded to five sensors using the I2C multiplexer. The Arduino Serial Monitor was used to check sensor readings, calibration values, and hit detection during testing.
+
+Both controllers were eventually tested in Clone Hero to verify that the physical inputs were correctly recognized by the game.
 
 ## Project Media
-
-_Guitar Controller_
 
 ### Guitar Controller Design
 
@@ -86,7 +108,7 @@ _Guitar Controller_
 </p>
 
 <p align="center">
-  <em>Figure 1. Guitar controller physical design (left) and key binding map (right).</em>
+  <em>Figure 1. Initial guitar controller design (left) and key binding map (right).</em>
 </p>
 
 ### Guitar Controller CAD Design
@@ -96,7 +118,7 @@ _Guitar Controller_
 </p>
 
 <p align="center">
-  <em>Figure 2. CAD models and design files for the guitar controller.</em>
+  <em>Figure 2. CAD models and design files used for the guitar controller housing.</em>
 </p>
 
 ### Guitar Controller Assembly and Final Design
@@ -108,7 +130,7 @@ _Guitar Controller_
 </p>
 
 <p align="center">
-  <em>Figure 3. Soldered fret button assembly (left), completed guitar controller front view (middle), and back view (right).</em>
+  <em>Figure 3. Soldered fret buttons (left), completed guitar controller front view (middle), and back view (right).</em>
 </p>
 
 ### Community Outreach — Women Can Do 2026
@@ -118,10 +140,8 @@ _Guitar Controller_
 </p>
 
 <p align="center">
-  <em>Figure 4. Guitar controller showcased at the 2026 Women Can Do event, providing an interactive demonstration to engage high school students and encourage interest in electrical engineering.</em>
+  <em>Figure 4. Guitar controller brought to the 2026 Women Can Do event, where high school students could try the controller and learn about electrical engineering.</em>
 </p>
-
-_Drum Controller_
 
 ### Drum Controller Design
 
@@ -131,7 +151,7 @@ _Drum Controller_
 </p>
 
 <p align="center">
-  <em>Figure 5. Initial drum controller design (left) and key mapping configuration (right).</em>
+  <em>Figure 5. Initial drum controller design (left) and key mapping (right).</em>
 </p>
 
 ### Final Drum Controller Design
@@ -142,10 +162,8 @@ _Drum Controller_
 </p>
 
 <p align="center">
-  <em>Figure 6. Completed drum controller showing the top view (left) and side view (right).</em>
+  <em>Figure 6. Final drum controller showing the top view (left) and side view (right).</em>
 </p>
-
-_Circuit Design_
 
 ### Guitar Controller Circuit Schematic
 
@@ -154,10 +172,10 @@ _Circuit Design_
 </p>
 
 <p align="center">
-  <em>Figure 7. Circuit schematic illustrating the electrical connections between the microcontroller, fret buttons, LEDs, and joystick strumming mechanism.</em>
+  <em>Figure 7. Guitar controller circuit schematic showing the microcontroller, fret buttons, LEDs, and joystick connections.</em>
 </p>
 
-**Note:** Photographic documentation of the initial breadboard prototype was not captured. The circuit schematic above illustrates the electrical design and connections used during prototyping. The Arduino Pro Micro was used in the final implementation.
+**Note:** No photographs were taken of the initial breadboard prototype. The schematic above shows the electrical connections used during development. The final controller used an Arduino Pro Micro.
 
 ### Drum Controller Circuit Schematic and Breadboard Prototype
 
@@ -167,18 +185,19 @@ _Circuit Design_
 </p>
 
 <p align="center">
-  <em>Figure 8. Drum controller circuit schematic (left) and physical breadboard prototype (right), illustrating the integration of the microcontroller, TCA9548A I2C multiplexer, and pressure sensors for drum hit detection.</em>
+  <em>Figure 8. Drum controller circuit schematic (left) and breadboard prototype (right), showing the microcontroller, I2C multiplexer, and pressure sensor connections.</em>
 </p>
 
 ## Future Improvements
 
-Although a custom PCB was planned for the project, it was never integrated due to budget constraints. Future development would involve implementing the PCB to replace the existing wiring configuration, improving the overall organization, reliability, and compactness of the electrical system.
+A custom PCB was originally planned to replace the breadboard and wiring connections, but it was not integrated due to budget constraints. This would be one of the main improvements in a future version, since it would make the electronics more compact, organized, and reliable.
 
-Additional improvements could include:
-- Replacing the joystick strumming mechanism with a spring-loaded strum bar to better replicate a traditional guitar controller
-- Implementing velocity-sensitive drum detection to distinguish between light and forceful strikes
-- Developing more durable drum surfaces to replace the balloons
-- Improving wire routing and electrical component mounting within the housings
+Other possible improvements include:
+
+- Replacing the joystick with a spring-loaded strum bar for a more realistic guitar controller
+- Adding velocity-sensitive drum detection to distinguish between lighter and harder strikes
+- Replacing the balloons with more durable drum surfaces
+- Improving the internal mounting and wire management of both controllers
 
 ## Project Information
 
@@ -186,6 +205,7 @@ Additional improvements could include:
 
 **Institution:** University of Vermont
 
-**Project Type:** Initially an independent project, later expanded as part of a team project in the Microcontrollers course.
+**Project Type:** Initially an independent project, later expanded into a team project for the Microcontrollers course.
 
-**Contributions:** Independently initiated the project, including initial hardware selection, controller design, and development. Further developed and refined the guitar and drum controllers through microcontroller programming, sensor integration, circuit assembly, and troubleshooting in collaboration with team members.
+**Contributions:** Independently started the project, including the initial design, hardware research, and microcontroller selection. Continued developing the guitar and drum controllers through programming, sensor integration, soldering, assembly, and troubleshooting as part of the course project.
+
