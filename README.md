@@ -138,7 +138,7 @@ _Circuit Design_
 
 <p align="center">
   <img src="images/DrumController_CircuitSchematic" width="48%">
-  <img src="images/DrumController_Breadboard_Prototype" width="48%">
+  <img src="images/DrumController_Breadboard_Prototype.png" width="48%">
 </p>
 
 <p align="center">
